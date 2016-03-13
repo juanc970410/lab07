@@ -42,6 +42,7 @@ public class JDBCDaoPaciente implements DaoPaciente {
     @Override
     public Paciente load(int idpaciente, String tipoid) throws PersistenceException {
         PreparedStatement ps;
+
         Paciente p = null;
         /*try {
             
