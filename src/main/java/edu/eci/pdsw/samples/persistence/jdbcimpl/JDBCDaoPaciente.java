@@ -94,37 +94,20 @@ public class JDBCDaoPaciente implements DaoPaciente {
         } catch (SQLException ex) {
             throw new PersistenceException("An error ocurred while saving a paciente.",ex);
         }
-        int idConsulta = 0;
-        try{
-            PreparedStatement consul = null;
-            String consulta = "SELECT SUM(idCONSULTAS) maxid FROM CONSULTAS";
-            con.setAutoCommit(false);
-            consul = con.prepareStatement(consulta);
-            ResultSet executeQuery = consul.executeQuery();
-            
-            executeQuery.next();
-            idConsulta = executeQuery.getInt("maxid")+1;
-//            System.out.println(idConsulta);
-        } catch (SQLException ex) {
-            Logger.getLogger(JDBCDaoPaciente.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         try{
             
             Set<Consulta> consultas = p.getConsultas();
             for (Consulta consul : consultas){
                 PreparedStatement guardarCon = null;
-                String insertConsulta = "INSERT INTO CONSULTAS VALUES (?,?,?,?,?)";
+                String insertConsulta = "INSERT INTO CONSULTAS (fecha_y_hora,resumen,PACIENTES_id, PACIENTES_tipo_id) VALUES (?,?,?,?)";
                 con.setAutoCommit(false);
                 guardarCon = con.prepareStatement(insertConsulta);
                 
-                guardarCon.setInt(1, idConsulta);
-                
-                idConsulta++;
-                guardarCon.setDate(2, consul.getFechayHora());
-                guardarCon.setString(3, consul.getResumen());
-                guardarCon.setInt(4, p.getId());
-                guardarCon.setString(5, p.getTipo_id());
+                guardarCon.setDate(1, consul.getFechayHora());
+                guardarCon.setString(2, consul.getResumen());
+                guardarCon.setInt(3, p.getId());
+                guardarCon.setString(4, p.getTipo_id());
                 guardarCon.executeUpdate();
                 con.commit();
             }
