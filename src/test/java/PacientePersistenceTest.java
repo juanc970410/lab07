@@ -62,6 +62,7 @@ public class PacientePersistenceTest {
         daof.commitTransaction();
         daof.endSession();        
     }*/
+    
     @Test
     public void pacienteConMasDeUnaConsulta() throws IOException, PersistenceException{
         InputStream input = null;
@@ -91,7 +92,6 @@ public class PacientePersistenceTest {
         daof.commitTransaction();
         daof.endSession();
     }
-    
     @Test
     public void pacienteSinConsultas() throws IOException, PersistenceException{
         InputStream input = null;
@@ -114,6 +114,63 @@ public class PacientePersistenceTest {
         
         daof.commitTransaction();
         daof.endSession();
+    }
+    @Test
+    public void pacienteConUnaConsulta() throws IOException, PersistenceException{
+        InputStream input = null;
+        input = ClassLoader.getSystemResourceAsStream("applicationconfig_test.properties");
+        Properties properties=new Properties();
+        properties.load(input);
+        DaoFactory daof=DaoFactory.getInstance(properties);
+        daof.beginSession();
+        
+        DaoPaciente nuevodao = daof.getDaoPaciente();
+        Paciente paciente = new Paciente(1019093806, "CC","jairo",java.sql.Date.valueOf("1994-04-10"));
+        Consulta consul = new Consulta(java.sql.Date.valueOf("2016-03-15"), "Infeccion");
+        
+        paciente.getConsultas().add(consul);
+        nuevodao.save(paciente);
+        Paciente pacienteDos = nuevodao.load(1019093806,"CC");
+        assertTrue("El paciente no quedo guardado",paciente.equals(pacienteDos));
+        
+        daof.commitTransaction();
+        daof.endSession();
+        
+    }
+    
+    @Test
+    public void pacienteYaExitenteConMasDeUnaConsulta() throws IOException, PersistenceException{
+        InputStream input = null;
+        input = ClassLoader.getSystemResourceAsStream("applicationconfig_test.properties");
+        Properties properties=new Properties();
+        properties.load(input);
+        DaoFactory daof=DaoFactory.getInstance(properties);
+        daof.beginSession();
+        
+        DaoPaciente nuevoDao = daof.getDaoPaciente();
+        Paciente paciente = new Paciente(2090540, "CC", "Jairo", java.sql.Date.valueOf("1994-04-10"));
+        Consulta consultaUno = new Consulta(java.sql.Date.valueOf("2016-03-15"), "Incapacidad por 3 dias");
+        Consulta consultaDos = new Consulta(java.sql.Date.valueOf("2016-04-15"), "Retirar puntos");
+        
+        paciente.getConsultas().add(consultaUno);
+        paciente.getConsultas().add(consultaDos);
+        
+        nuevoDao.save(paciente);
+        
+        boolean band = false;
+        
+        try{
+            nuevoDao.save(paciente);
+        }catch (Exception e){
+            
+            band = true;
+        }
+        
+        assertTrue("Guardo un paciente que ya estaba guaardado", band);
+        
+        daof.commitTransaction();
+        daof.endSession();
+        
     }
     
 }

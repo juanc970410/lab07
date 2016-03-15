@@ -92,11 +92,25 @@ public class JDBCDaoPaciente implements DaoPaciente {
             guardar.executeUpdate();
             con.commit();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            throw new PersistenceException("An error ocurred while saving a paciente.",ex);
+        }
+        int idConsulta = 0;
+        try{
+            PreparedStatement consul = null;
+            String consulta = "SELECT SUM(idCONSULTAS) maxid FROM CONSULTAS";
+            con.setAutoCommit(false);
+            consul = con.prepareStatement(consulta);
+            ResultSet executeQuery = consul.executeQuery();
+            
+            executeQuery.next();
+            idConsulta = executeQuery.getInt("maxid")+1;
+//            System.out.println(idConsulta);
+        } catch (SQLException ex) {
+            Logger.getLogger(JDBCDaoPaciente.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         try{
-            int idConsulta = 705;
+            
             Set<Consulta> consultas = p.getConsultas();
             for (Consulta consul : consultas){
                 PreparedStatement guardarCon = null;
