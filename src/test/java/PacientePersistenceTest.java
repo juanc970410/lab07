@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//import com.mysql.jdbc.Connection;
-//import com.mysql.jdbc.PreparedStatement;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
 import edu.eci.pdsw.samples.entities.Consulta;
 import edu.eci.pdsw.samples.entities.Paciente;
 import edu.eci.pdsw.samples.persistence.DaoFactory;
@@ -27,8 +27,6 @@ import java.io.InputStream;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -50,7 +48,7 @@ public class PacientePersistenceTest {
     public void setUp() {
     }
     
-    @Test
+    /*@Test
     public void databaseConnectionTest() throws IOException, PersistenceException{
         InputStream input = null;
         input = ClassLoader.getSystemResourceAsStream("applicationconfig_test.properties");
@@ -61,14 +59,41 @@ public class PacientePersistenceTest {
         
         daof.beginSession();
         
-        //IMPLEMENTACION DE LAS PRUEBAS
-        //fail("Pruebas no implementadas");
-        
         daof.commitTransaction();
         daof.endSession();        
-    }
+    }*/
     @Test
     public void pacienteConMasDeUnaConsulta() throws IOException, PersistenceException{
+        InputStream input = null;
+        input = ClassLoader.getSystemResourceAsStream("applicationconfig_test.properties");
+        Properties properties=new Properties();
+        properties.load(input);
+        DaoFactory daof=DaoFactory.getInstance(properties);
+        
+        daof.beginSession();
+        
+        
+        DaoPaciente daoPaciente = daof.getDaoPaciente();
+        
+        Paciente p = new Paciente(1019129303, "CC", "Juan Camilo", java.sql.Date.valueOf("1997-04-10"));
+        Consulta c1 = new Consulta(java.sql.Date.valueOf("2016-03-05"), "Consulta general");
+        Consulta c2 = new Consulta(java.sql.Date.valueOf("2016-04-10"), "Presenta un cuadro viral");
+        p.getConsultas().add(c1);
+        p.getConsultas().add(c2);
+        
+        daoPaciente.save(p);
+        
+        Paciente p2 = daoPaciente.load(1019129303, "CC");
+        
+        
+        assertTrue("Los pacientes no son iguales",p.equals(p2));
+                
+        daof.commitTransaction();
+        daof.endSession();
+    }
+    
+    @Test
+    public void pacienteSinConsultas() throws IOException, PersistenceException{
         InputStream input = null;
         input = ClassLoader.getSystemResourceAsStream("applicationconfig_test.properties");
         Properties properties=new Properties();
@@ -79,37 +104,16 @@ public class PacientePersistenceTest {
         
         DaoPaciente daoPaciente = daof.getDaoPaciente();
         
-        Paciente p = new Paciente(1019129303, "CC", "Juan Camilo", new Date(1997, 04, 10));
-        Consulta c1 = new Consulta(new Date(2016, 03, 15), "Consulta general");
-        Consulta c2 = new Consulta(new Date(2016, 04, 10), "Presenta un cuadro viral");
-        p.getConsultas().add(c1);
-        p.getConsultas().add(c2);
+        Paciente p = new Paciente(2103021, "CC", "Juan Camilo", java.sql.Date.valueOf("1997-04-10"));
+        
         daoPaciente.save(p);
         
-        Connection con = null;
-        try{
-            String url = properties.getProperty("url");
-            String driver = properties.getProperty("driver");
-            
-            Class.forName(driver);
-            
-            con = DriverManager.getConnection(url);
-            con.setAutoCommit(false);
-            
-            PreparedStatement st = null;
-            String query = "select pac.nombre, pac.fecha_nacimiento, con.idCONSULTAS, con.fecha_y_hora, con.resumen from PACIENTES as pac inner join CONSULTAS as con on con.PACIENTES_id=pac.id and con.PACIENTES_tipo_id=pac.tipo_id where pac.id=? and pac.tipo_id=?";
-            
-            st=con.prepareStatement(query);
-            st.setInt(1, 1019129303);
-            st.setString(2, "CC");
-            ResultSet executeQuery = st.executeQuery();
-            while (executeQuery.next()){
-                
-            }
-            
-        } catch (ClassNotFoundException| SQLException ex) {
-            Logger.getLogger(PacientePersistenceTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Paciente p2 = daoPaciente.load(2103021, "CC");
+        
+        assertTrue("No se pudo guardar el paciente",p.equals(p2));
+        
+        daof.commitTransaction();
+        daof.endSession();
     }
     
 }

@@ -25,6 +25,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -41,30 +45,78 @@ public class JDBCDaoPaciente implements DaoPaciente {
 
     @Override
     public Paciente load(int idpaciente, String tipoid) throws PersistenceException {
-        PreparedStatement ps;
-
+        Set<Consulta> consultas = new HashSet<Consulta>();
         Paciente p = null;
-        /*try {
-            
-            
+        try {
+            PreparedStatement load = null;
+            String cargarPaciente = "select pac.nombre, pac.fecha_nacimiento, con.idCONSULTAS idcon, con.fecha_y_hora, con.resumen from PACIENTES as pac left join CONSULTAS as con on con.PACIENTES_id=pac.id and con.PACIENTES_tipo_id=pac.tipo_id where pac.id=? and pac.tipo_id=?";
+            con.setAutoCommit(false);
+            load = con.prepareStatement(cargarPaciente);
+            load.setInt(1, idpaciente);
+            load.setString(2, tipoid);
+            ResultSet resp = load.executeQuery();
+            con.commit();
+            if(resp.next()){
+                
+                p = new Paciente(idpaciente, tipoid,resp.getString("nombre"),resp.getDate("fecha_nacimiento"));
+                
+                if (resp.getString("idcon")!=null){
+                    
+                    Consulta c = new Consulta(resp.getDate("fecha_y_hora"), resp.getString("resumen"));
+                    consultas.add(c);
+                }
+            }
+            while(resp.next()){
+                p = new Paciente(idpaciente, tipoid,resp.getString("nombre"),resp.getDate("fecha_nacimiento"));
+                Consulta c = new Consulta(resp.getDate("fecha_y_hora"), resp.getString("resumen"));
+                consultas.add(c);
+            }
+            p.setConsultas(consultas);
         } catch (SQLException ex) {
             throw new PersistenceException("An error ocurred while loading "+idpaciente,ex);
-        }*/
+        }
         return p;
     }
 
     @Override
     public void save(Paciente p) throws PersistenceException {
-        PreparedStatement ps;
-        /*try {
-        
-            
+        try {
+            PreparedStatement guardar = null;
+            String insertPaciente = "INSERT INTO PACIENTES VALUES (?,?,?,?)";
+            con.setAutoCommit(false);
+            guardar = con.prepareStatement(insertPaciente);
+            guardar.setInt(1, p.getId());
+            guardar.setString(2, p.getTipo_id());
+            guardar.setString(3, p.getNombre());
+            guardar.setDate(4, p.getFechaNacimiento());
+            guardar.executeUpdate();
+            con.commit();
         } catch (SQLException ex) {
-            throw new PersistenceException("An error ocurred while loading a product.",ex);
-        }*/
+            ex.printStackTrace();
+        }
         
-        throw new RuntimeException("No se ha implementado el metodo 'load' del DAOPAcienteJDBC");
-
+        try{
+            int idConsulta = 705;
+            Set<Consulta> consultas = p.getConsultas();
+            for (Consulta consul : consultas){
+                PreparedStatement guardarCon = null;
+                String insertConsulta = "INSERT INTO CONSULTAS VALUES (?,?,?,?,?)";
+                con.setAutoCommit(false);
+                guardarCon = con.prepareStatement(insertConsulta);
+                
+                guardarCon.setInt(1, idConsulta);
+                
+                idConsulta++;
+                guardarCon.setDate(2, consul.getFechayHora());
+                guardarCon.setString(3, consul.getResumen());
+                guardarCon.setInt(4, p.getId());
+                guardarCon.setString(5, p.getTipo_id());
+                guardarCon.executeUpdate();
+                con.commit();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(JDBCDaoPaciente.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -75,7 +127,7 @@ public class JDBCDaoPaciente implements DaoPaciente {
         } catch (SQLException ex) {
             throw new PersistenceException("An error ocurred while loading a product.",ex);
         } */
-        throw new RuntimeException("No se ha implementado el metodo 'load' del DAOPAcienteJDBC");
+        
     }
     
 }

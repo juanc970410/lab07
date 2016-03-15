@@ -18,6 +18,7 @@ package edu.eci.pdsw.samples.entities;
 
 import java.sql.Date;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -31,14 +32,69 @@ public class Paciente {
     private String nombre;
     private Date fechaNacimiento;
     Set<Consulta> consultas;
-    
 
+    
     public Paciente(int id, String tipo_id, String nombre, Date fechaNacimiento) {
         this.id = id;
         this.tipo_id = tipo_id;
         this.nombre = nombre;
         this.fechaNacimiento = fechaNacimiento;
         consultas=new LinkedHashSet<>();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Paciente other = (Paciente) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if (!Objects.equals(this.tipo_id, other.tipo_id)) {
+            return false;
+        }
+        if (!Objects.equals(this.nombre, other.nombre)) {
+            return false;
+        }
+        if (!Objects.equals(this.fechaNacimiento, other.fechaNacimiento)) {
+            
+            return false;
+        }
+        if (!Objects.equals(this.consultas, other.consultas)) {
+            boolean band = true;
+            
+            for (Consulta cons:this.consultas){
+                for (Consulta consulta : other.consultas){
+                    band = consulta.getResumen().equals(cons.getResumen());
+                    
+                    if (band){
+                        break;
+                    }
+                }
+                if (!band){
+                    break;
+                }
+            }
+            return band;
+        }
+        else{
+            return true;
+        } 
+        
+        
     }
 
     public Paciente() {
